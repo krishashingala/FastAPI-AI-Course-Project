@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FastAPI AI Course Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5f8;--panel:#fff;--ink:#14212b;--mute:#5d6b78;--line:#dde3ea;--accent:#0f766e;--accent-ink:#fff;--accent-soft:#d9f0ed;--danger:#b4232a;--danger-soft:#fbe4e4;--ok:#16794a}
+@media (prefers-color-scheme:dark){:root{--bg:#0e151b;--panel:#16202a;--ink:#e6edf3;--mute:#93a1ae;--line:#26333f;--accent:#2dd4bf;--accent-ink:#06231f;--accent-soft:#12332f;--danger:#ff8a8f;--danger-soft:#3a1c1e;--ok:#4ade80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,Segoe UI,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px 56px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+h2{font-size:16px;margin:0 0 12px}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--danger)}
+.dot.on{background:var(--ok)}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 16px;font:inherit;font-weight:600;color:var(--mute);cursor:pointer}
+nav button[aria-selected=true]{color:var(--accent);border-color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:9px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--danger-soft);color:var(--danger)}
+.btn.sm{padding:5px 10px;font-size:13px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--mute);font-weight:600}
+td.act{text-align:right;white-space:nowrap}
+.scroll{overflow-x:auto}
+.empty{color:var(--mute);padding:18px 0;text-align:center}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:28px;text-align:center;color:var(--mute);cursor:pointer}
+.drop.over,.drop:hover{border-color:var(--accent);background:var(--accent-soft)}
+.chat{display:flex;flex-direction:column;gap:10px;min-height:240px;max-height:420px;overflow-y:auto;margin-bottom:14px}
+.msg{max-width:85%;padding:10px 14px;border-radius:12px;white-space:pre-wrap;word-wrap:break-word}
+.msg.me{align-self:flex-end;background:var(--accent);color:var(--accent-ink)}
+.msg.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line)}
+.msg small{display:block;margin-top:6px;color:var(--mute);font-size:12px}
+.row{display:flex;gap:10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+.toast.show{opacity:1}
+.toast.err{background:var(--danger);color:#fff}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>FastAPI AI Course Project</h1>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Checking server…</span>
+      <input id="apiUrl" aria-label="API URL" style="width:210px;padding:5px 8px;font-size:13px" value="http://127.0.0.1:8000"></div>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="students">Students</button>
+    <button role="tab" aria-selected="false" data-tab="documents">Documents</button>
+    <button role="tab" aria-selected="false" data-tab="chat">Chat</button>
+  </nav>
+
+  <section id="tab-students">
+    <div class="card">
+      <h2 id="formTitle">Add a student</h2>
+      <div class="grid">
+        <div><label for="sName">Name</label><input id="sName" maxlength="120"></div>
+        <div><label for="sAge">Age</label><input id="sAge" type="number" min="1" max="120"></div>
+        <div><label for="sCourse">Course</label><input id="sCourse" maxlength="120"></div>
+        <div class="row"><button class="btn" id="saveStudent">Add student</button><button class="btn ghost" id="cancelEdit" hidden>Cancel</button></div>
+      </div>
+    </div>
+    <div class="card scroll">
+      <table><thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Course</th><th></th></tr></thead><tbody id="studentRows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="tab-documents" hidden>
+    <div class="card">
+      <h2>Upload a PDF</h2>
+      <div class="drop" id="drop" tabindex="0">Drop a PDF here or click to choose one (max 10 MB)</div>
+      <input type="file" id="file" accept="application/pdf" hidden>
+    </div>
+    <div class="card scroll">
+      <table><thead><tr><th>ID</th><th>File</th><th>Uploaded</th><th>Characters</th><th></th></tr></thead><tbody id="docRows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="tab-chat" hidden>
+    <div class="card">
+      <label for="docSelect">Ask about</label>
+      <select id="docSelect" style="margin-bottom:14px"></select>
+      <div class="chat" id="chat"><div class="empty" id="chatEmpty">Upload a PDF, then ask a question about it.</div></div>
+      <div class="row">
+        <input id="question" placeholder="What does the document say about skills?" maxlength="2000">
+        <button class="btn" id="send">Send</button>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const api = () => $('#apiUrl').value.replace(/\/+$/, '');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let editId = null, toastTimer;
+
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = 'toast', 3000);
+}
+
+async function call(path, opts) {
+  let res;
+  try { res = await fetch(api() + path, opts); }
+  catch { setStatus(false); throw new Error('Cannot reach the server. Is uvicorn running, and is this page open on port 3000?'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const d = data.detail;
+    throw new Error(Array.isArray(d) ? d.map(x => x.loc.slice(1).join('.') + ': ' + x.msg).join('; ') : (d || 'Request failed'));
+  }
+  return data;
+}
+const jsonOpts = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+const guard = fn => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message, true); } };
+
+function setStatus(ok) {
+  $('#dot').className = 'dot' + (ok ? ' on' : '');
+  $('#statusText').textContent = ok ? 'Server connected' : 'Server offline';
+}
+async function checkHealth() {
+  try { await fetch(api() + '/health'); setStatus(true); } catch { setStatus(false); }
+}
+
+/* Tabs */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['students', 'documents', 'chat'].forEach(t => $('#tab-' + t).hidden = t !== b.dataset.tab);
+  if (b.dataset.tab === 'students') loadStudents(); else loadDocs();
+});
+
+/* Students */
+const loadStudents = guard(async () => {
+  const list = await call('/students'); setStatus(true);
+  $('#studentRows').innerHTML = list.length ? list.map(s => `<tr>
+    <td>${s.id}</td><td>${esc(s.name)}</td><td>${s.age}</td><td>${esc(s.course)}</td>
+    <td class="act"><button class="btn ghost sm" onclick="editStudent(${s.id},'${esc(s.name).replace(/'/g,"\\'")}',${s.age},'${esc(s.course).replace(/'/g,"\\'")}')">Edit</button>
+    <button class="btn danger sm" onclick="delStudent(${s.id})">Delete</button></td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty">No students yet. Add the first one above.</td></tr>';
+});
+function resetForm() {
+  editId = null; ['#sName', '#sAge', '#sCourse'].forEach(i => $(i).value = '');
+  $('#formTitle').textContent = 'Add a student'; $('#saveStudent').textContent = 'Add student'; $('#cancelEdit').hidden = true;
+}
+window.editStudent = (id, n, a, c) => {
+  editId = id; $('#sName').value = n; $('#sAge').value = a; $('#sCourse').value = c;
+  $('#formTitle').textContent = 'Edit student #' + id; $('#saveStudent').textContent = 'Save changes'; $('#cancelEdit').hidden = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+window.delStudent = guard(async id => {
+  if (!confirm('Delete student #' + id + '?')) return;
+  await call('/students/' + id, { method: 'DELETE' }); toast('Student deleted'); loadStudents();
+});
+$('#cancelEdit').onclick = resetForm;
+$('#saveStudent').onclick = guard(async () => {
+  const body = { name: $('#sName').value.trim(), age: parseInt($('#sAge').value, 10), course: $('#sCourse').value.trim() };
+  if (editId) { await call('/students/' + editId, jsonOpts('PUT', body)); toast('Student updated'); }
+  else { await call('/students', jsonOpts('POST', body)); toast('Student added'); }
+  resetForm(); loadStudents();
+});
+
+/* Documents */
+let docs = [];
+const loadDocs = guard(async () => {
+  docs = await call('/documents'); setStatus(true);
+  $('#docRows').innerHTML = docs.length ? docs.map(d => `<tr>
+    <td>${d.id}</td><td>${esc(d.filename)}</td><td>${new Date(d.uploaded_at).toLocaleString()}</td><td>${d.characters_extracted.toLocaleString()}</td>
+    <td class="act"><button class="btn danger sm" onclick="delDoc(${d.id})">Delete</button></td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty">No documents yet. Upload a PDF above.</td></tr>';
+  const keep = $('#docSelect').value;
+  $('#docSelect').innerHTML = '<option value="">Latest uploaded document</option>' + docs.map(d => `<option value="${d.id}">#${d.id} ${esc(d.filename)}</option>`).join('');
+  $('#docSelect').value = keep;
+});
+window.delDoc = guard(async id => {
+  if (!confirm('Delete document #' + id + '?')) return;
+  await call('/documents/' + id, { method: 'DELETE' }); toast('Document deleted'); loadDocs();
+});
+const upload = guard(async f => {
+  if (!f) return;
+  const fd = new FormData(); fd.append('file', f);
+  $('#drop').textContent = 'Uploading ' + f.name + '…';
+  try {
+    const r = await call('/documents/upload', { method: 'POST', body: fd });
+    toast(r.filename + ' uploaded (' + r.characters_extracted.toLocaleString() + ' characters)');
+  } finally { $('#drop').textContent = 'Drop a PDF here or click to choose one (max 10 MB)'; $('#file').value = ''; }
+  loadDocs();
+});
+const drop = $('#drop');
+drop.onclick = () => $('#file').click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') $('#file').click(); };
+$('#file').onchange = e => upload(e.target.files[0]);
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); upload(e.dataTransfer.files[0]); };
+
+/* Chat */
+function addMsg(cls, text, note) {
+  $('#chatEmpty')?.remove();
+  const m = document.createElement('div'); m.className = 'msg ' + cls; m.textContent = text;
+  if (note) { const s = document.createElement('small'); s.textContent = note; m.appendChild(s); }
+  $('#chat').appendChild(m); $('#chat').scrollTop = 1e9;
+  return m;
+}
+const send = guard(async () => {
+  const q = $('#question').value.trim(); if (q.length < 2) return;
+  const id = $('#docSelect').value;
+  addMsg('me', q); $('#question').value = ''; $('#send').disabled = true;
+  const wait = addMsg('bot', 'Searching the document…');
+  try {
+    const r = await call('/chat', jsonOpts('POST', { question: q, document_id: id ? parseInt(id, 10) : null }));
+    wait.remove(); addMsg('bot', r.answer, r.note);
+  } catch (e) { wait.remove(); throw e; }
+  finally { $('#send').disabled = false; }
+});
+$('#send').onclick = send;
+$('#question').onkeydown = e => { if (e.key === 'Enter') send(); };
+
+$('#apiUrl').onchange = () => { checkHealth(); loadStudents(); loadDocs(); };
+checkHealth(); loadStudents(); loadDocs();
+</script>
+</body>
+</html>
